@@ -206,7 +206,7 @@ static DWORD WINAPI thread_stub (void * ts_ptr)
 }
 
 /* hbs_thread_create ********************************************************/
-HBS_API hbs_status_t ZLX_CALL hbs_thread_create
+HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_create
 (
     hbs_thread_t * id_p,
     hbs_thread_func_t func,
@@ -216,26 +216,27 @@ HBS_API hbs_status_t ZLX_CALL hbs_thread_create
     hbs_thread_start_t * ts;
 
     ts = HeapAlloc(GetProcessHeap(), 0, sizeof(*ts));
-    if (!ts) return HBS_NO_MEM;
+    if (!ts) return ZLX_MTH_NO_MEM;
     ts->func = func;
     ts->arg = arg;
     *id_p = (uintptr_t) CreateThread(NULL, 0, thread_stub, ts, 0, NULL);
-    if (!*id_p) return HBS_FAILED;
-    return HBS_OK;
+    if (!*id_p) return ZLX_MTH_FAILED;
+    return ZLX_MTH_OK;
 }
 
 /* hbs_thread_join **********************************************************/
-HBS_API hbs_status_t ZLX_CALL hbs_thread_join
+HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_join
 (
     hbs_thread_t thread_id,
     uint32_t * ret_p
 )
 {
     DWORD d;
-    if (WaitForSingleObject((HANDLE) thread_id, INFINITE)) return HBS_FAILED;
-    if (!GetExitCodeThread((HANDLE) thread_id, &d)) return HBS_FAILED;
+    if (WaitForSingleObject((HANDLE) thread_id, INFINITE)) 
+        return ZLX_MTH_FAILED;
+    if (!GetExitCodeThread((HANDLE) thread_id, &d)) return ZLX_MTH_FAILED;
     if (ret_p) *ret_p = d;
-    return HBS_OK;
+    return ZLX_MTH_OK;
 }
 
 /* hbs_mutex_init ***********************************************************/

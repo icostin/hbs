@@ -143,7 +143,7 @@ static void * thread_stub (void * ts_ptr)
 }
 
 /* hbs_thread_create ********************************************************/
-HBS_API hbs_status_t ZLX_CALL hbs_thread_create
+HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_create
 (
     hbs_thread_t * id_p,
     hbs_thread_func_t func,
@@ -154,20 +154,20 @@ HBS_API hbs_status_t ZLX_CALL hbs_thread_create
     hbs_thread_start_t * ts;
 
     ts = malloc(sizeof(*ts));
-    if (!ts) return HBS_NO_MEM;
+    if (!ts) return ZLX_MTH_NO_MEM;
     ts->func = func;
     ts->arg = arg;
     r = pthread_create(id_p, NULL, thread_stub, ts);
     switch (r)
     {
-    case 0: return HBS_OK;
-    case EAGAIN: return HBS_NO_RES;
-    default: return HBS_FAILED;
+    case 0: return ZLX_MTH_OK;
+    case EAGAIN: return ZLX_MTH_NO_RES;
+    default: return ZLX_MTH_FAILED;
     }
 }
 
 /* hbs_thread_join **********************************************************/
-HBS_API hbs_status_t ZLX_CALL hbs_thread_join
+HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_join
 (
     hbs_thread_t thread_id,
     uint32_t * ret_p
@@ -179,11 +179,11 @@ HBS_API hbs_status_t ZLX_CALL hbs_thread_join
     r = pthread_join(thread_id, &ret);
     switch (r)
     {
-    case 0: if (ret_p) *ret_p = (uint32_t) (uintptr_t) ret; return HBS_OK;
-    case EDEADLK: return HBS_DEADLOCK;
-    case EINVAL: return HBS_ALREADY_JOINING;
-    case ESRCH: return HBS_NO_THREAD;
-    default: return HBS_FAILED;
+    case 0: if (ret_p) *ret_p = (uint32_t) (uintptr_t) ret; return ZLX_MTH_OK;
+    case EDEADLK: return ZLX_MTH_DEADLOCK;
+    case EINVAL: return ZLX_MTH_ALREADY_JOINING;
+    case ESRCH: return ZLX_MTH_NO_THREAD;
+    default: return ZLX_MTH_FAILED;
     }
 }
 

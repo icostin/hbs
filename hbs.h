@@ -226,7 +226,7 @@ struct hbs_thread_start_s
 /**
  *  Creates a thread.
  */
-HBS_API hbs_status_t ZLX_CALL hbs_thread_create
+HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_create
 (
     hbs_thread_t * id_p,
     hbs_thread_func_t func,
@@ -237,7 +237,7 @@ HBS_API hbs_status_t ZLX_CALL hbs_thread_create
 /**
  *  Waits for a thread to finish.
  */
-HBS_API hbs_status_t ZLX_CALL hbs_thread_join
+HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_join
 (
     hbs_thread_t thread_id,
     uint32_t * ret_p

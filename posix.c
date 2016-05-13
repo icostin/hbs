@@ -85,6 +85,31 @@ HBS_API zlx_file_t * hbs_out = NULL;
 HBS_API zlx_file_t * hbs_err = NULL;
 HBS_API zlx_ma_t * hbs_ma = &posix_ma;
 
+HBS_API zlx_mth_xfc_t hbs_mth_xfc =
+{
+    /* thread */
+    {
+        hbs_thread_create,
+        hbs_thread_join
+    },
+    /* mutex */
+    {
+        hbs_mutex_init,
+        hbs_mutex_finish,
+        hbs_mutex_lock,
+        hbs_mutex_unlock,
+        sizeof(pthread_mutex_t)
+    },
+    /* cond */
+    {
+        hbs_cond_init,
+        hbs_cond_finish,
+        hbs_cond_signal,
+        hbs_cond_wait,
+        sizeof(pthread_cond_t)
+    }
+};
+
 /* hbs_init *****************************************************************/
 HBS_API hbs_status_t ZLX_CALL hbs_init ()
 {
@@ -136,7 +161,7 @@ static void * ZLX_CALL posix_realloc
 static void * thread_stub (void * ts_ptr)
 {
     hbs_thread_start_t * ts = ts_ptr;
-    hbs_thread_func_t func = ts->func;
+    zlx_thread_func_t func = ts->func;
     void * arg = ts->arg;
     free(ts);
     return (void *) (uintptr_t) func(arg);
@@ -144,11 +169,11 @@ static void * thread_stub (void * ts_ptr)
 
 /* hbs_thread_create ********************************************************/
 HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_create
-(
-    hbs_thread_t * id_p,
-    hbs_thread_func_t func,
-    void * arg
-)
+    (
+        zlx_tid_t * tid_p,
+        zlx_thread_func_t func,
+        void * arg
+    )
 {
     int r;
     hbs_thread_start_t * ts;
@@ -157,7 +182,7 @@ HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_create
     if (!ts) return ZLX_MTH_NO_MEM;
     ts->func = func;
     ts->arg = arg;
-    r = pthread_create(id_p, NULL, thread_stub, ts);
+    r = pthread_create((pthread_t *) tid_p, NULL, thread_stub, ts);
     switch (r)
     {
     case 0: return ZLX_MTH_OK;
@@ -168,15 +193,15 @@ HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_create
 
 /* hbs_thread_join **********************************************************/
 HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_join
-(
-    hbs_thread_t thread_id,
-    uint32_t * ret_p
-)
+    (
+        zlx_tid_t tid,
+        uint8_t * ret_p
+    )
 {
     void * ret;
     int r;
 
-    r = pthread_join(thread_id, &ret);
+    r = pthread_join(tid, &ret);
     switch (r)
     {
     case 0: if (ret_p) *ret_p = (uint32_t) (uintptr_t) ret; return ZLX_MTH_OK;
@@ -190,7 +215,7 @@ HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_join
 /* hbs_mutex_init ***********************************************************/
 HBS_API void ZLX_CALL hbs_mutex_init
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 )
 {
     pthread_mutex_init((pthread_mutex_t *) mutex_p, NULL);
@@ -200,7 +225,7 @@ HBS_API void ZLX_CALL hbs_mutex_init
 /* hbs_mutex_finish *********************************************************/
 HBS_API void ZLX_CALL hbs_mutex_finish
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 )
 {
     pthread_mutex_destroy((pthread_mutex_t *) mutex_p);
@@ -209,7 +234,7 @@ HBS_API void ZLX_CALL hbs_mutex_finish
 /* hbs_mutex_lock ***********************************************************/
 HBS_API void ZLX_CALL hbs_mutex_lock
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 )
 {
     pthread_mutex_lock((pthread_mutex_t *) mutex_p);
@@ -218,26 +243,26 @@ HBS_API void ZLX_CALL hbs_mutex_lock
 /* hbs_mutex_unlock *********************************************************/
 HBS_API void ZLX_CALL hbs_mutex_unlock
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 )
 {
     pthread_mutex_unlock((pthread_mutex_t *) mutex_p);
 }
 
 /* hbs_cond_init ************************************************************/
-HBS_API hbs_status_t ZLX_CALL hbs_cond_init
+HBS_API zlx_mth_status_t ZLX_CALL hbs_cond_init
 (
-    hbs_cond_t * cond_p
+    zlx_cond_t * cond_p
 )
 {
     pthread_cond_init((pthread_cond_t *) cond_p, NULL);
-    return HBS_OK;
+    return ZLX_MTH_OK;
 }
 
 /* hbs_cond_finish **********************************************************/
 HBS_API void ZLX_CALL hbs_cond_finish
 (
-    hbs_cond_t * cond_p
+    zlx_cond_t * cond_p
 )
 {
     pthread_cond_destroy((pthread_cond_t *) cond_p);
@@ -246,7 +271,7 @@ HBS_API void ZLX_CALL hbs_cond_finish
 /* hbs_cond_signal **********************************************************/
 HBS_API void ZLX_CALL hbs_cond_signal
 (
-    hbs_cond_t * cond_p
+    zlx_cond_t * cond_p
 )
 {
     pthread_cond_signal((pthread_cond_t *) cond_p);
@@ -255,8 +280,8 @@ HBS_API void ZLX_CALL hbs_cond_signal
 /* hbs_cond_wait ************************************************************/
 HBS_API void ZLX_CALL hbs_cond_wait
 (
-    hbs_cond_t * cond_p,
-    hbs_mutex_t * mutex_p
+    zlx_cond_t * cond_p,
+    zlx_mutex_t * mutex_p
 )
 {
     pthread_cond_wait((pthread_cond_t *) cond_p, (pthread_mutex_t *) mutex_p);

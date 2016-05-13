@@ -191,57 +191,26 @@ HBS_API void ZLX_CALL hbs_finish ();
 /* multi-threading                                                          */
 /****************************************************************************/
 
-/*  hbs_thread_func_t  */
-/**
- *  Thread function pointer.
- */
-typedef uint32_t (* ZLX_CALL hbs_thread_func_t) (void * arg);
-
-/*  hbs_thread_t  */
-/**
- *  Integral type used as thread identifier.
- */
-typedef uintptr_t hbs_thread_t;
-
-/*  hbs_mutex_t  */
-/**
- *  Opaque type for mutex.
- */
-typedef struct hbs_mutex_s hbs_mutex_t;
-
-/*  hbs_cond_t  */
-/**
- *  Opaque type for Condition Variable.
- */
-typedef struct hbs_cond_s hbs_cond_t;
-
-typedef struct hbs_thread_start_s hbs_thread_start_t;
-struct hbs_thread_start_s
-{
-    hbs_thread_func_t func;
-    void * arg;
-};
-
 /* hbs_thread_create ********************************************************/
 /**
  *  Creates a thread.
  */
 HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_create
-(
-    hbs_thread_t * id_p,
-    hbs_thread_func_t func,
-    void * arg
-);
+    (
+        zlx_tid_t * tid_p,
+        zlx_thread_func_t func,
+        void * arg
+    );
 
 /* hbs_thread_join **********************************************************/
 /**
  *  Waits for a thread to finish.
  */
 HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_join
-(
-    hbs_thread_t thread_id,
-    uint32_t * ret_p
-);
+    (
+        zlx_tid_t tid,
+        uint8_t * ret_val_p
+    );
 
 /* hbs_mutex_size ***********************************************************/
 /**
@@ -255,7 +224,7 @@ extern HBS_API size_t hbs_mutex_size;
  */
 HBS_API void ZLX_CALL hbs_mutex_init
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 );
 
 /* hbs_mutex_finish *********************************************************/
@@ -264,36 +233,22 @@ HBS_API void ZLX_CALL hbs_mutex_init
  */
 HBS_API void ZLX_CALL hbs_mutex_finish
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 );
 
 /* hbs_mutex_create *********************************************************/
 /**
  *  Allocates and initializes a mutex.
  */
-ZLX_INLINE hbs_status_t ZLX_CALL hbs_mutex_create
-(
-    hbs_mutex_t * * mutex_pp
-)
-{
-    *mutex_pp = hbs_alloc(hbs_mutex_size, "hbs.mutex");
-    if (!*mutex_pp) return HBS_NO_MEM;
-    hbs_mutex_init(*mutex_pp);
-    return HBS_OK;
-}
+#define hbs_mutex_create(_info) \
+    (zlx_mutex_create(hbs_ma, &hbs_mth_xfc.mutex, (_info)))
 
 /* hbs_mutex_destroy ********************************************************/
 /**
  *  Finishes and frees memory for a given mutex.
  */
-ZLX_INLINE void ZLX_CALL hbs_mutex_destroy
-(
-    hbs_mutex_t * mutex_p
-)
-{
-    hbs_mutex_finish(mutex_p);
-    hbs_free(mutex_p, hbs_mutex_size);
-}
+#define hbs_mutex_destroy(_mutex) \
+    (zlx_mutex_destroy((_mutex), hbs_ma, &hbs_mth_xfc.mutex))
 
 /* hbs_mutex_lock ***********************************************************/
 /**
@@ -301,7 +256,7 @@ ZLX_INLINE void ZLX_CALL hbs_mutex_destroy
  */
 HBS_API void ZLX_CALL hbs_mutex_lock
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 );
 
 /* hbs_mutex_unlock *********************************************************/
@@ -310,7 +265,7 @@ HBS_API void ZLX_CALL hbs_mutex_lock
  */
 HBS_API void ZLX_CALL hbs_mutex_unlock
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 );
 
 /* hbs_cond_size ************************************************************/
@@ -324,9 +279,9 @@ extern HBS_API size_t hbs_cond_size;
 /**
  *  Inits a conditional variable.
  */
-HBS_API hbs_status_t ZLX_CALL hbs_cond_init
+HBS_API zlx_mth_status_t ZLX_CALL hbs_cond_init
 (
-    hbs_cond_t * cond_p
+    zlx_cond_t * cond_p
 );
 
 /* hbs_cond_finish **********************************************************/
@@ -335,7 +290,7 @@ HBS_API hbs_status_t ZLX_CALL hbs_cond_init
  */
 HBS_API void ZLX_CALL hbs_cond_finish
 (
-    hbs_cond_t * cond_p
+    zlx_cond_t * cond_p
 );
 
 /* hbs_cond_signal **********************************************************/
@@ -344,7 +299,7 @@ HBS_API void ZLX_CALL hbs_cond_finish
  */
 HBS_API void ZLX_CALL hbs_cond_signal
 (
-    hbs_cond_t * cond_p
+    zlx_cond_t * cond_p
 );
 
 /* hbs_cond_wait ************************************************************/
@@ -353,30 +308,23 @@ HBS_API void ZLX_CALL hbs_cond_signal
  */
 HBS_API void ZLX_CALL hbs_cond_wait
 (
-    hbs_cond_t * cond_p,
-    hbs_mutex_t * mutex
+    zlx_cond_t * cond,
+    zlx_mutex_t * mutex
 );
 
 /* hbs_cond_create **********************************************************/
 /**
- *  Allocates and initializes an condition variable.
+ *  Allocates and initializes a condition variable.
  */
-ZLX_INLINE hbs_status_t hbs_cond_create (hbs_cond_t * * cond_pp)
-{
-    hbs_status_t hs;
-    *cond_pp = hbs_alloc(hbs_cond_size, "hbs.cond");
-    if (!*cond_pp) return HBS_NO_MEM;
-    hs = hbs_cond_init(*cond_pp);
-    if (hs) hbs_free(*cond_pp, hbs_cond_size); 
-    return hs;
-}
+#define hbs_cond_create(_status_p, _info) \
+    (zlx_cond_create(hbs_ma, &hbs_mth_xfc.cond, (_status_p), (_info)))
 
-/* hbs_cond_destroy *********************************************************/
-ZLX_INLINE void hbs_cond_destroy (hbs_cond_t * cond_p)
-{
-    hbs_cond_finish(cond_p);
-    hbs_free(cond_p, hbs_cond_size);
-}
+/*  hbs_cond_destroy  */
+/**
+ *  Uninitializes and deallocates a condition variable.
+ */
+#define hbs_cond_destroy(_cond) \
+    (zlx_cond_destroy((_cond), hbs_ma, &hbs_mth_xfc.cond))
 
 /****************************************************************************/
 /* host file system                                                         */
@@ -515,6 +463,10 @@ extern HBS_API zlx_log_t * hbs_log;
  *  Provides a quick and convenient way of disabling instances of #HBS_DM.
  */
 #define HBS_DMX(_fmt, ...) ((void) 0)
+
+
+HBS_API zlx_mth_xfc_t hbs_mth_xfc;
+
 
 #ifdef __cplusplus
 }

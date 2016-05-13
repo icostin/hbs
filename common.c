@@ -22,6 +22,7 @@ zlx_log_t hbs_default_log =
 
 HBS_API zlx_log_t * hbs_log = &hbs_default_log;
 
+
 uint8_t error_buffer[0x1000];
 
 /* main_wrap ****************************************************************/

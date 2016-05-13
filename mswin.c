@@ -103,6 +103,30 @@ HBS_API zlx_file_t * hbs_in = NULL;
 HBS_API zlx_file_t * hbs_out = NULL;
 HBS_API zlx_file_t * hbs_err = NULL;
 
+HBS_API zlx_mth_xfc_t hbs_mth_xfc =
+{
+    /* thread */
+    {
+        hbs_thread_create,
+        hbs_thread_join
+    },
+    /* mutex */
+    {
+        hbs_mutex_init,
+        hbs_mutex_finish,
+        hbs_mutex_lock,
+        hbs_mutex_unlock,
+        sizeof(CRITICAL_SECTION)
+    },
+    /* cond */
+    {
+        hbs_cond_init,
+        hbs_cond_finish,
+        hbs_cond_signal,
+        hbs_cond_wait,
+        sizeof(HANDLE)
+    }
+};
 
 /* hbs_init *****************************************************************/
 HBS_API hbs_status_t ZLX_CALL hbs_init ()
@@ -198,7 +222,7 @@ static void * ZLX_CALL mswin_realloc
 static DWORD WINAPI thread_stub (void * ts_ptr)
 {
     hbs_thread_start_t * ts = ts_ptr;
-    hbs_thread_func_t func = ts->func;
+    zlx_thread_func_t func = ts->func;
     void * arg = ts->arg;
 
     HeapFree(GetProcessHeap(), 0, ts);
@@ -207,11 +231,11 @@ static DWORD WINAPI thread_stub (void * ts_ptr)
 
 /* hbs_thread_create ********************************************************/
 HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_create
-(
-    hbs_thread_t * id_p,
-    hbs_thread_func_t func,
-    void * arg
-)
+    (
+        zlx_tid_t * id_p,
+        zlx_thread_func_t func,
+        void * arg
+    )
 {
     hbs_thread_start_t * ts;
 
@@ -226,10 +250,10 @@ HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_create
 
 /* hbs_thread_join **********************************************************/
 HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_join
-(
-    hbs_thread_t thread_id,
-    uint32_t * ret_p
-)
+    (
+        zlx_tid_t thread_id,
+        uint8_t * ret_p
+    )
 {
     DWORD d;
     if (WaitForSingleObject((HANDLE) thread_id, INFINITE)) 
@@ -242,7 +266,7 @@ HBS_API zlx_mth_status_t ZLX_CALL hbs_thread_join
 /* hbs_mutex_init ***********************************************************/
 HBS_API void ZLX_CALL hbs_mutex_init
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 )
 {
     InitializeCriticalSection((CRITICAL_SECTION *) mutex_p);
@@ -251,7 +275,7 @@ HBS_API void ZLX_CALL hbs_mutex_init
 /* hbs_mutex_finish *********************************************************/
 HBS_API void ZLX_CALL hbs_mutex_finish
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 )
 {
     DeleteCriticalSection((CRITICAL_SECTION *) mutex_p);
@@ -260,7 +284,7 @@ HBS_API void ZLX_CALL hbs_mutex_finish
 /* hbs_mutex_lock ***********************************************************/
 HBS_API void ZLX_CALL hbs_mutex_lock
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 )
 {
     EnterCriticalSection((CRITICAL_SECTION *) mutex_p);
@@ -269,29 +293,29 @@ HBS_API void ZLX_CALL hbs_mutex_lock
 /* hbs_mutex_unlock *********************************************************/
 HBS_API void ZLX_CALL hbs_mutex_unlock
 (
-    hbs_mutex_t * mutex_p
+    zlx_mutex_t * mutex_p
 )
 {
     LeaveCriticalSection((CRITICAL_SECTION *) mutex_p);
 }
 
 /* hbs_cond_init ************************************************************/
-HBS_API hbs_status_t ZLX_CALL hbs_cond_init
+HBS_API zlx_mth_status_t ZLX_CALL hbs_cond_init
 (
-    hbs_cond_t * cond_p
+    zlx_cond_t * cond_p
 )
 {
     HANDLE h;
     h = CreateEvent(NULL, FALSE, FALSE, NULL);
-    if (!h) return HBS_FAILED;
+    if (!h) return ZLX_MTH_FAILED;
     *(HANDLE *) cond_p = h;
-    return HBS_OK;
+    return ZLX_MTH_OK;
 }
 
 /* hbs_cond_finish **********************************************************/
 HBS_API void ZLX_CALL hbs_cond_finish
 (
-    hbs_cond_t * cond_p
+    zlx_cond_t * cond_p
 )
 {
     CloseHandle(*(HANDLE *) cond_p);
@@ -300,7 +324,7 @@ HBS_API void ZLX_CALL hbs_cond_finish
 /* hbs_cond_signal **********************************************************/
 HBS_API void ZLX_CALL hbs_cond_signal
 (
-    hbs_cond_t * cond_p
+    zlx_cond_t * cond_p
 )
 {
     SetEvent(*(HANDLE *) cond_p);
@@ -309,8 +333,8 @@ HBS_API void ZLX_CALL hbs_cond_signal
 /* hbs_cond_wait ************************************************************/
 HBS_API void ZLX_CALL hbs_cond_wait
 (
-    hbs_cond_t * cond_p,
-    hbs_mutex_t * mutex_p
+    zlx_cond_t * cond_p,
+    zlx_mutex_t * mutex_p
 )
 {
     hbs_mutex_unlock(mutex_p);

@@ -12,5 +12,7 @@ hbs_dlib_cflags := -DHBS_DYNAMIC
 hbs_ldflags = -lzlx$($3_sfx)
 hbs_ldep = $(call prod_path,zlx,$2,$3,$4)
 
+hbs_prj_dep := zlx
+
 include icobld.mk
 

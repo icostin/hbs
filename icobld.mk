@@ -33,11 +33,11 @@ PREFIX_DIR := $(HOME)/.local
 endif
 
 ifeq ($(OUT_DIR),)
-OUT_DIR := ../{out}
+OUT_DIR := ../_out
 endif
 
 ifeq ($(BLD_DIR),)
-BLD_DIR := ../{bld}
+BLD_DIR := ../_tmp
 endif
 
 slib_out_dir ?= lib

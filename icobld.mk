@@ -26,6 +26,7 @@ $c_ar := $(AR)
 $c_strip := strip
 $c_dlib_cflags := -fPIC
 $c_dlib_ldflags := -shared
+$c_release_install := yes
 endif
 
 ifeq ($(PREFIX_DIR),)
@@ -305,12 +306,18 @@ uninstall:
 	-rm -f $(foreach p,$(projects),$(patsubst %,$(PREFIX_DIR)/include/%,$($p_chdr)) $(foreach q,$($p_prod),$(foreach c,$($p_cfg),$(foreach b,$($p_bld),$(and $($b_$c_install),$(call inst_path,$p,$q,$c,$b))))))
 	
 
-#$(info $(foreach p,$(projects),$(foreach q,$($p_prod),$(foreach c,$($p_cfg),$(foreach b,$($p_bld),$(and $($b_$c_install),$(call gen_inst_prod_rule,$p,$q,$c,$b)))))))
 $(eval $(foreach p,$(projects),$(foreach q,$($p_prod),$(foreach c,$($p_cfg),$(foreach b,$($p_bld),$(and $($b_$c_install),$(call gen_inst_prod_rule,$p,$q,$c,$b)))))))
 
 $(eval $(foreach b,$(builders),$(call gen_bld_rule,$b)))
 
 nop:
 
-$(info processing rules...)
+ifneq ($(verbose),)
+$(info ==============)
+$(info $(foreach p,$(projects),$(call gen_prj_rule,$p)))
+$(info install: $(sort $(foreach p,$(projects),$(foreach q,$($p_prod),$(foreach c,$($p_cfg),$(foreach b,$($p_bld),$(and $($b_$c_install),$(call inst_path,$p,$q,$c,$b) install_chdr_$p)))))))
+$(info $(foreach p,$(projects),$(foreach q,$($p_prod),$(foreach c,$($p_cfg),$(foreach b,$($p_bld),$(and $($b_$c_install),$(call gen_inst_prod_rule,$p,$q,$c,$b)))))))
+$(info $(foreach b,$(builders),$(call gen_bld_rule,$b)))
+$(info ==============)
+endif
 

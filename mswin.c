@@ -205,7 +205,7 @@ static void * ZLX_CALL mswin_realloc
     zlx_ma_t * ma
 )
 {
-    mswin_ma_t * ZLX_RESTRICT hma = (mswin_ma_t *) ma;
+    mswin_ma_t * restrict hma = (mswin_ma_t *) ma;
     (void) old_size;
 #if 0
     L("op=%p, os=%lu, ns=%lu, heap=%p",
@@ -429,7 +429,7 @@ static ptrdiff_t ZLX_CALL file_read
     size_t size
 )
 {
-    file_t * ZLX_RESTRICT f = (file_t * ZLX_RESTRICT) zf;
+    file_t * restrict f = (file_t * restrict) zf;
     DWORD r, e;
 
     if (size >= ((size_t) 1 << 31)) return -ZLXF_SIZE_LIMIT;
@@ -450,7 +450,7 @@ static ptrdiff_t ZLX_CALL file_write
     size_t size
 )
 {
-    file_t * ZLX_RESTRICT f = (file_t * ZLX_RESTRICT) zf;
+    file_t * restrict f = (file_t * restrict) zf;
     DWORD w, e;
 
     if (size >= ((size_t) 1 << 31)) return -ZLXF_SIZE_LIMIT;

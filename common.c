@@ -105,7 +105,7 @@ HBS_API zlx_file_status_t ZLX_CALL hbs_file_close
 }
 
 /* hbs_log_init *************************************************************/
-HBS_API void hbs_log_init (zlx_file_t * ZLX_RESTRICT file, unsigned int level)
+HBS_API void hbs_log_init (zlx_file_t * restrict file, unsigned int level)
 {
     hbs_default_log.write = (zlx_write_func_t) file->fcls->write;
     hbs_default_log.obj = file;

@@ -351,7 +351,7 @@ static ptrdiff_t ZLX_CALL file_read
     size_t size
 )
 {
-    file_t * ZLX_RESTRICT f = (file_t *) zf;
+    file_t * restrict f = (file_t *) zf;
     ssize_t z;
 
     z = read(f->fd, data, size);
@@ -389,7 +389,7 @@ static ptrdiff_t ZLX_CALL file_write
     size_t size
 )
 {
-    file_t * ZLX_RESTRICT f = (file_t *) zf;
+    file_t * restrict f = (file_t *) zf;
     ssize_t z;
     z = write(f->fd, data, size);
     if (z < 0)
@@ -433,7 +433,7 @@ static int64_t ZLX_CALL file_seek64
     int anchor
 )
 {
-    file_t * ZLX_RESTRICT f = (file_t *) zf;
+    file_t * restrict f = (file_t *) zf;
     int64_t o;
 
     o = lseek64(f->fd, offset, anchor);
@@ -462,7 +462,7 @@ static zlx_file_status_t ZLX_CALL file_truncate
     zlx_file_t * zf
 )
 {
-    file_t * ZLX_RESTRICT f = (file_t *) zf;
+    file_t * restrict f = (file_t *) zf;
     int64_t o;
 
     o = file_seek64(zf, 0, ZLXF_CUR);
@@ -493,7 +493,7 @@ static zlx_file_status_t ZLX_CALL file_close
     unsigned int flags
 )
 {
-    file_t * ZLX_RESTRICT f = (file_t *) zf;
+    file_t * restrict f = (file_t *) zf;
     flags = f->base.flags & ~flags;
     if ((flags & (ZLXF_READ | ZLXF_WRITE)) || !close(f->fd))
     {

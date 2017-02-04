@@ -409,7 +409,7 @@ HBS_API zlx_file_status_t ZLX_CALL hbs_file_close
  *  Initializes the global logger of this library.
  *  The global logger is exposed as #hbs_log.
  */
-HBS_API void hbs_log_init (zlx_file_t * ZLX_RESTRICT file, unsigned int level);
+HBS_API void hbs_log_init (zlx_file_t * restrict file, unsigned int level);
 
 /* hbs_log ******************************************************************/
 /**
@@ -449,20 +449,18 @@ extern HBS_API zlx_log_t * hbs_log;
  */
 #define HBS_LD(...) (ZLX_LD(hbs_log, __VA_ARGS__))
 
-/*  HBS_DM  */
+/*  HBS_LDM  */
 /**
  *  Decorated debug message.
  *  This macro generates debug messages prefixed by the code location
  */
-#define HBS_DM(_fmt, ...) \
-    (ZLX_LD(hbs_log, "$s:$i:$s(): " _fmt "\n", \
-            __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__))
+#define HBS_LDM(...) (ZLX_LDM(hbs_log, __VA_ARGS__))
 
-/*  HBS_DMX  */
+/*  HBS_LDMX  */
 /**
- *  Provides a quick and convenient way of disabling instances of #HBS_DM.
+ *  Provides a quick and convenient way of disabling instances of #HBS_LDM.
  */
-#define HBS_DMX(_fmt, ...) ((void) 0)
+#define HBS_LDMX(_fmt, ...) ((void) 0)
 
 
 HBS_API zlx_mth_xfc_t hbs_mth_xfc;
